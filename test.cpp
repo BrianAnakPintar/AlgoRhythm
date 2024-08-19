@@ -9,36 +9,6 @@ typedef int64_t i64;
 #define pb push_back
 #define sz(a) ((int)a.size())
 
-std::ostream& operator<<(std::ostream& os, i128 n) {
-    std::string s;
-    while (n) {
-        s += '0' + n % 10;
-        n /= 10;
-    }
-    std::reverse(s.begin(), s.end());
-    return os << s;
-}
-
-template <typename T>
-std::ostream& operator<<(std::ostream& os, vector<T>& a) {
-    for (T i : a) os << i << " ";
-    return os << "\n";
-}
-
-template <typename T>
-std::istream& operator>>(std::istream& is, vector<T>& a) {
-    for (T& i : a) is >> i;
-    return is;
-}
-
-void no() {
-    cout << "NO\n";
-}
-
-void yes() {
-    cout << "YES\n";
-}
-
 template<class T>
 constexpr T power(T a, i64 b) {
     T res = 1;
@@ -250,149 +220,50 @@ struct MInt {
 };
 
 template<>
-int MInt<0>::Mod = 1000000007;
+int MInt<0>::Mod = 1e9 + 9;
 
 template<int V, int P>
 constexpr MInt<P> CInv = MInt<P>(V).inv();
 
-constexpr int P = 1000000007;
+constexpr int P = 1e9 + 9;
 using Z = MInt<P>;
 
-double ES;
-double EX;
+int p = 31;
 
-double y(int n, int k) {
-    if (k == 0) {
-        return (n + 1) / 2 * EX;
-    }
-    if (n == 0) {
-        return 0;
-    }
-    double ret = (double(k) / n) * (EX + y(n - 1, k - 1)) + (double(1) - (double(k) / n)) * (k * ES + (n - k) * EX - y(n - 1, k));
+vector<Z> myHashPreFix(string s) {
+    int n = s.size();
+    vector<Z> ret(n + 1);
+    Z pow = 1;
+    for (int i = 0; i < n; i++, pow *= p)
+        ret[i + 1] = ret[i] + (s[i] - 'a' + 1) * pow;
     return ret;
 }
 
 vector<int> rabin_karp(string const& s, string const& t) {
-    const int p = 31;
-    const int m = 1e9 + 9;
-    int S = s.size(), T = t.size();
-
-    vector<long long> p_pow(max(S, T));
-    p_pow[0] = 1;
-    for (int i = 1; i < (int)p_pow.size(); i++)
-        p_pow[i] = (p_pow[i - 1] * p) % m;
-
-    vector<long long> h(T + 1, 0);
-    for (int i = 0; i < T; i++)
-        h[i + 1] = (h[i] + (t[i] - 'a' + 1) * p_pow[i]) % m;
-    long long h_s = 0;
-    for (int i = 0; i < S; i++)
-        h_s = (h_s + (s[i] - 'a' + 1) * p_pow[i]) % m;
-
-    vector<int> occurrences;
-    for (int i = 0; i + S - 1 < T; i++) {
-        long long cur_h = (h[i + S] + m - h[i]) % m;
-        if (cur_h == h_s * p_pow[i] % m)
-            occurrences.push_back(i);
-    }
-    return occurrences;
-}
-
-int p = 31;
-int mod = 1e9 + 9;
-
-int myHash(string s) {
-    int n = s.size();
-
-    int ret = 0;
-    int pow = 1;
-    for (int i = 0; i < n; i++) {
-        ret += (s[i] - 'a' + 1) * pow % mod;
-        pow = (pow * p) % mod;
-    }
-
-    return ret;
-}
-
-vector<int> myHashPreFix(string s) {
-
-
-    int n = s.size();
-
-    vector<int> ret(n + 1);
-    int sum = 0;
-    int pow = 1;
-    for (int i = 0; i < n; i++) {
-        sum += (s[i] - 'a' + 1) * pow % mod;
-        pow = (pow * p) % mod;
-        ret[i + 1] = sum;
-    }
-
-    return ret;
-}
-
-long long binpow(long long a, long long b) {
-    long long res = 1;
-    while (b > 0) {
-        if (b & 1)
-            res = (res * a) % mod;
-        a = (a * a) % mod;
-        b >>= 1;
-    }
-    return res;
-}
-
-vector<int> rabin_karp2(string const& s, string const& t) {
-    int n = s.size();
-    int m = t.size();
-
+    int n = s.size(), m = t.size();
     if (n > m) return {};
 
-    int hashOfS = myHash(s);
-    vector<int> hashOfT = myHashPreFix(t);
+    Z hashOfS = myHashPreFix(s).back();
+    vector<Z> hashOfT = myHashPreFix(t);
 
-    cout << hashOfT << "\n";
+    vector<Z> pinvpow(m + 1);
+    pinvpow[m] = power(Z(p), m).inv();
+    for (int i = m - 1; i >= 0; i--)
+        pinvpow[i] = pinvpow[i + 1] * p;
 
-    int ppow = 1;
-    for (int i = 1; i <= m; i++) {
-        ppow = (ppow * p) % mod;
-    }
-    int pinvn = binpow(ppow, mod - 2);
-
-    vector<int> pinvpow(m + 1);
-    pinvpow[m] = pinvn;
-    for (int i = m - 1; i >= 0; i--) {
-        pinvpow[i] = (pinvpow[i + 1] * p) % mod;
-    }
-
-    vector<int> pos = {};
-    for (int i = 0; i + n < m; i++) {
-        int subHash = ((hashOfT[i + n] - hashOfT[i]) * pinvpow[i]) % mod;
-        if (subHash == hashOfS) {
-            pos.push_back(i);
-        }
-        cout << "hashes: " << subHash << " " << hashOfS << "\n";
+    vector<int> pos;
+    for (int i = 0; i + n <= m; i++) {
+        Z subHash = ((hashOfT[i + n] - hashOfT[i]) * pinvpow[i]);
+        if (subHash == hashOfS) pos.push_back(i);
     }
     return pos;
-}
-
-void solve() {
-    // s is needle, t is haystack
-    string s, t; cin >> s >> t;
-    auto ret = rabin_karp(s, t);
-    cout << ret << "\n";
-    ret = rabin_karp2(s, t);
-    cout << ret << "\n";
 }
 
 int32_t main() {
     ios_base::sync_with_stdio(0);
     cin.tie(0); cout.tie(0);
 
-    int t = 1;
-    // cin >> t;
-    while (t--) {
-        solve();
-        // cout << "\n";
-    }
+    string s, t; cin >> s >> t;
+    auto ret = rabin_karp(s, t);
+    for (int i : ret) cout << i << " ";
 }
