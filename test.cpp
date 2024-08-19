@@ -383,11 +383,6 @@ void solve() {
     cout << ret << "\n";
     ret = rabin_karp2(s, t);
     cout << ret << "\n";
-
-    // cout << myHash(s) << " " << myHash(t) << "\n";
-
-    // auto ans = myHashPreFix(t);
-    // cout << ans << "\n";
 }
 
 int32_t main() {
