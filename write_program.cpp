@@ -3,7 +3,7 @@
 
 // A function that creates an is_even.cpp
 void create_is_even_program() {
-    const int MAX_DEPTH = 10000;
+    const int MAX_DEPTH = 15000;
 
     std::ofstream file;
     file.open("is_even.cpp");

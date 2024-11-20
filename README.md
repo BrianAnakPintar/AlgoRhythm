@@ -1,2 +1,2 @@
 # AlgoRhythm
-Collection of C++ algorithms
+Collection of questionable C++ algorithms
